@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Travel Assistant - India</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<style>
+:root {
+  --accent: #ff6b6b;
+  --accent2: #5f27cd;
+  --bg: linear-gradient(135deg,#f9f9f9,#eef3ff);
+  --card-bg: rgba(255,255,255,0.85);
+  --shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:"Poppins",sans-serif; background:var(--bg); color:#222; line-height:1.6; }
+header { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; padding:1.5rem 2rem; text-align:center; border-bottom-left-radius:25px; border-bottom-right-radius:25px; box-shadow:var(--shadow);}
+header h2 { font-size:2rem;margin-bottom:0.5rem;}
+nav a { color:white;margin:0 1rem;text-decoration:none;font-weight:600; transition:0.3s;}
+nav a:hover { color:#ffdd59;}
+.hero { text-align:center; padding:3rem 1rem; background:linear-gradient(120deg,#74ebd5,#acb6e5); color:#fff; border-radius:20px; margin:2rem auto; max-width:1200px; box-shadow:var(--shadow);}
+.hero h1 { font-size:2.8rem; margin-bottom:0.5rem;}
+.section { max-width:1400px; margin:auto; padding:2rem; position:relative;}
+.grid-3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1.5rem;}
+.card { background:var(--card-bg); backdrop-filter:blur(12px); padding:1.5rem; border-radius:20px; box-shadow:var(--shadow); transition: transform 0.3s ease, box-shadow 0.3s ease;}
+.card:hover { transform:translateY(-6px); box-shadow:0 12px 30px rgba(0,0,0,0.15);}
+h3 { margin-bottom:1rem; color:var(--accent2);}
+label { display:block; margin-top:1rem; font-weight:600; }
+input, select, button, textarea { padding:0.8rem; width:100%; margin-top:0.5rem; border-radius:12px; border:1px solid #ddd; font-size:1rem;}
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 6px rgba(255,107,107,0.5);}
+button { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; border:none; font-weight:600; cursor:pointer; transition:0.3s; margin-top:1.2rem;}
+button:hover { opacity:0.9; transform:scale(1.02);}
+#map { height:400px; width:100%; border-radius:15px;}
+.tourism-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-bottom:2rem;}
+.tourism-card { border-radius:15px; overflow:hidden; box-shadow:var(--shadow); text-align:center; background:white; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor:pointer;}
+.tourism-card:hover { transform:translateY(-6px); box-shadow:0 12px 30px rgba(0,0,0,0.2);}
+.tourism-card img { width:100%; height:160px; object-fit:cover; transition: transform 0.3s ease; }
+.tourism-card:hover img { transform:scale(1.05); }
+.tourism-card p { padding:0.5rem 0; font-weight:600; font-size:1rem; }
+.translator-sos { display:flex; gap:1.5rem; margin-top:2rem; flex-wrap:wrap; }
+.translator-box, .sos-box { background:#fff; padding:1.5rem; border-radius:15px; box-shadow:var(--shadow); flex:1 1 300px; }
+footer {font-family: "Georgia",serif; text-align:center; padding:1rem; margin-top:3rem; background:#111; color:#bbb; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-left-radius:5px; border-bottom-right-radius:5px;
+}
+</style>
+
+
+
+
+
+ <style>
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    input, button { padding: 10px; margin: 10px; width: 250px; }
+    #weatherResult { margin-top: 20px; }
+  </style>
+
+
+
+ <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #noteInput { width: 300px; padding: 8px; }
+    .note {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 10px;
+      background: #f9f9f9;
+      position: relative;
+    }
+    .marked {
+      background-color: #fff8c6;
+      border-color: #f1c40f;
+    }
+    .note button {
+      margin-right: 5px;
+    }
+  </style>
+
+
+
+ <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .star { cursor: pointer; font-size: 24px; color: gray; }
+    .star.selected { color: gold; }
+    #reviews { margin-top: 20px; }
+    .review-box { border-bottom: 1px solid #ccc; padding: 5px 0; }
+  </style>
+
+
+</head>
+<body>
+
+<header>
+  <h2>🌍 Smart Travel Assistant</h2>
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#plan">Plan</a>
+    <a href="#tourism">Tourism</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<section class="hero" id="home">
+  <h1>Explore Incredible India 🇮🇳</h1>
+  <p>Plan your journeys with budget, hotels, maps, weather, translation, and safety alerts.</p>
+</section>
+
+
+
+
+
+
+  <h2>Check Weather in the City</h2>
+  <input type="text" id="cityInput" placeholder="Type city name (e.g., Pune)">
+  <button onclick="getWeather()">Get Weather</button>
+
+  <div id="weatherResult"></div>
+
+  <script>
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      if (!city) {
+        alert("Please enter a city name.");
+        return;
+      }
+
+      // Step 1: Get coordinates using Nominatim
+      const geoUrl = https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&country=India&format=json&limit=1;
+
+      try {
+        const geoResponse = await fetch(geoUrl);
+        const geoData = await geoResponse.json();
+
+        if (geoData.length === 0) {
+          document.getElementById('weatherResult').innerText = "City not found in India.";
+          return;
+        }
+
+        const lat = geoData[0].lat;
+        const lon = geoData[0].lon;
+
+        // Step 2: Get weather using Open-Meteo
+        const weatherUrl = https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weathercode;
+
+        const weatherResponse = await fetch(weatherUrl);
+        const weatherData = await weatherResponse.json();
+
+        if (weatherData.current) {
+          const temp = weatherData.current.temperature_2m;
+          const humidity = weatherData.current.relative_humidity_2m;
+          const code = weatherData.current.weathercode;
+
+          document.getElementById('weatherResult').innerHTML = `
+            <h3>Weather in ${city}</h3>
+            <p><strong>Temperature:</strong> ${temp}°C</p>
+            <p><strong>Humidity:</strong> ${humidity}%</p>
+            <p><strong>Weather Code:</strong> ${code}</p>
+          `;
+        } else {
+          document.getElementById('weatherResult').innerText = "Weather data not available.";
+        }
+      } catch (error) {
+        document.getElementById('weatherResult').innerText = "Error fetching data.";
+      }
+    }
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="section" id="tourism">
+  <h2 style="text-align:center; margin-bottom:2rem; color:var(--accent);">🏛 Top 4 Tourist Places in India</h2>
+  <div class="tourism-grid" id="tourismGrid"></div>
+</section>
+
+<section class="section" id="plan">
+  <h2 style="text-align:center; margin-bottom:2rem; color:var(--accent);">✨ Plan Your Trip</h2>
+  <div class="grid-3">
+    <div class="card">
+      <h3>💰 Budget Planner & Hotels</h3>
+      <p><b>Your Location:</b> <span id="fromLocation">Detecting...</span></p>
+
+      <label for="toInput">Destination</label>
+      <select id="toInput"><option value="">-- Select Destination --</option></select>
+
+      <label for="mode">Travel Mode</label>
+      <select id="mode">
+        <option value="train">Train 🚆</option>
+        <option value="flight">Flight ✈</option>
+      </select>
+
+      <label for="budgetInput">Total Budget (₹)</label>
+      <input type="number" id="budgetInput" placeholder="Enter total budget in ₹">
+
+      <label for="persons">Number of Persons 👥</label>
+      <input type="number" id="persons" placeholder="e.g. 2">
+
+      <label for="dailySpend">Daily Spend per Person (₹)</label>
+      <input type="number" id="dailySpend" placeholder="e.g. 1500">
+
+      <label for="hotel">Hotel Type</label>
+      <select id="hotel">
+        <option value="budget">Budget 🏨 ₹1000/night/person</option>
+        <option value="standard">Standard 🏩 ₹2500/night/person</option>
+        <option value="luxury">Luxury 🏰 ₹5000/night/person</option>
+      </select>
+
+      <button onclick="suggestDestinations()">Calculate Trip Plan</button>
+    </div>
+
+    <div id="budgetResults" class="card">
+      <h3>📝 Journey Plan</h3>
+      <p>Fill details and click "Calculate Trip Plan".</p>
+    </div>
+
+    <div class="card">
+      <h3>🗺 Route Map</h3>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <div class="translator-sos">
+    <div class="translator-box">
+      <h3>🌐 Language Translator</h3>
+      <textarea id="translateText" rows="3" placeholder="Type text to translate..."></textarea>
+      <label for="langSelect">Translate To:</label>
+      <select id="langSelect">
+        <option value="hi">Hindi</option>
+        <option value="te">Telugu</option>
+        <option value="ta">Tamil</option>
+        <option value="kn">Kannada</option>
+        <option value="ml">Malayalam</option>
+        <option value="bn">Bengali</option>
+        <option value="gu">Gujarati</option>
+        <option value="pa">Punjabi</option>
+        <option value="ur">Urdu</option>
+        <option value="en">English</option>
+      </select>
+      <button onclick="translateText()">Translate</button>
+      <h4>🔎 Translation:</h4>
+      <p id="translatedOutput" style="font-weight:bold; color:#222;"></p>
+    </div>
+
+    <div class="sos-box">
+      <h3>🆘 Emergency SOS</h3>
+      <button onclick="sendSOS()">Send SOS Alert</button>
+      <p id="sosStatus" style="margin-top:0.5rem; font-weight:bold;"></p>
+    </div>
+  </div>
+
+
+</section>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+let userLocation=""; 
+let userCoords=[20.5937,78.9629]; 
+let map=L.map('map').setView(userCoords,5); 
+let routeLayer,originMarker,destMarker;
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+
+if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    userCoords=[pos.coords.latitude,pos.coords.longitude];
+    map.setView(userCoords,6);
+    try{
+      const resp=await fetch(https://nominatim.openstreetmap.org/reverse?lat=${userCoords[0]}&lon=${userCoords[1]}&format=json);
+      const data=await resp.json();
+      userLocation=data.address.city||data.address.town||data.address.village||"Unknown";
+      document.getElementById("fromLocation").innerText=userLocation;
+      originMarker=L.marker(userCoords).addTo(map).bindPopup(You are here: ${userLocation}).openPopup();
+    }catch{ document.getElementById("fromLocation").innerText="Could not detect"; }
+  });
+}
+
+// Budget Planner
+async function suggestDestinations(){
+  const from=userLocation;
+  const to=document.getElementById("toInput").value;
+  const budget=parseInt(document.getElementById("budgetInput").value)||0;
+  const persons=parseInt(document.getElementById("persons").value)||1;
+  const dailySpend=parseInt(document.getElementById("dailySpend").value)||1000;
+  const mode=document.getElementById("mode").value;
+  const hotelType=document.getElementById("hotel").value;
+
+  let travelCost=mode==="train"?500:2500;
+  let hotelCost=hotelType==="budget"?1000*persons:hotelType==="standard"?2500*persons:5000*persons;
+  const remaining=budget-travelCost-hotelCost;
+  const days=Math.floor(remaining/(dailySpend*persons));
+
+  let weatherText="Loading...";
+  try{
+    const resp=await fetch(https://api.openweathermap.org/data/2.5/weather?q=${to},IN&units=metric&appid=e3ff4def66478e407f4eaf30c32b6418);
+    const data=await resp.json();
+    weatherText=data.weather?${data.weather[0].description}, 🌡 ${data.main.temp}°C:"Not available";
+  }catch{ weatherText="Not available"; }
+
+  document.getElementById("budgetResults").innerHTML=`
+    <h3>📝 Journey Plan</h3>
+    <p><b>From:</b> ${from} ➝ <b>To:</b> ${to}</p>
+    <p><b>Mode:</b> ${mode} | <b>Travel Cost:</b> ₹${travelCost}</p>
+    <p><b>Hotel:</b> ${hotelType} | <b>Hotel Cost:</b> ₹${hotelCost}</p>
+    <p><b>Total Budget:</b> ₹${budget}</p>
+    <p><b>Remaining:</b> ₹${remaining}</p>
+    <p><b>Travellers:</b> ${persons}</p>
+    <p><b>Trip Duration:</b> ${days>0?days+" days":"Budget too low 😔"}</p>
+    <p><b>Weather in ${to}:</b> ${weatherText}</p>
+  `;
+
+  try{
+    const destResp=await fetch(https://nominatim.openstreetmap.org/search?city=${to}&country=India&format=json);
+    const destData=await destResp.json();
+    if(destData.length>0){
+      const destCoords=[destData[0].lat,destData[0].lon];
+      if(routeLayer) map.removeLayer(routeLayer);
+      if(originMarker) originMarker.remove();
+      if(destMarker) destMarker.remove();
+      originMarker=L.marker(userCoords).addTo(map).bindPopup(From: ${from}).openPopup();
+      destMarker=L.marker(destCoords).addTo(map).bindPopup(To: ${to}).openPopup();
+      routeLayer=L.polyline([userCoords,destCoords],{color:'blue',weight:5}).addTo(map);
+      map.fitBounds(routeLayer.getBounds(),{padding:[50,50]});
+    }
+  }catch(err){ console.log(err); }
+}
+
+// Translator
+async function translateText(){
+  const text=document.getElementById("translateText").value.trim();
+  const lang=document.getElementById("langSelect").value;
+  const output=document.getElementById("translatedOutput");
+  if(!text){ output.innerText="Please enter text."; return; }
+  try{
+    const res=await fetch(https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(text)});
+    const data=await res.json();
+    output.innerText=data[0][0][0];
+  }catch(e){ output.innerText="Translation failed."; }
+}
+
+// Top 4 Tourism Places
+const tourismData=[
+  {name:"Agra", display:"Taj Mahal, Agra", img:"https://images.unsplash.com/photo-1549893073-1f2b8c1a96a5?auto=format&fit=crop&w=600&q=80"},
+  {name:"Jaipur", display:"City Palace, Jaipur", img:"https://images.unsplash.com/photo-1570758911251-54f847d9156b?auto=format&fit=crop&w=600&q=80"},
+  {name:"Goa", display:"Goa Beaches", img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80"},
+  {name:"Manali", display:"Manali, Himachal", img:"https://images.unsplash.com/photo-1583520181712-9f79f6bbfd20?auto=format&fit=crop&w=600&q=80"}
+];
+
+const tourismGrid=document.getElementById("tourismGrid");
+const toInput=document.getElementById("toInput");
+
+tourismData.forEach(place=>{
+  const card=document.createElement("div");
+  card.className="tourism-card";
+  card.innerHTML=<img src="${place.img}" alt="${place.display}"><p>${place.display}</p>;
+  card.onclick=()=>{ toInput.value=place.name; window.scrollTo({top:document.getElementById('plan').offsetTop,behavior:'smooth'}); };
+  tourismGrid.appendChild(card);
+});
+
+// Add more destination names in budget planner
+const destinations=[
+  "Agra","Jaipur","Goa","Manali","Darjeeling","Kerala","Rishikesh","Varanasi","Mysore","Udaipur",
+  "Shimla","Amritsar","Kolkata","Mumbai","Bangalore","Hyderabad","Pune","Chennai","Lucknow","Srinagar"
+];
+destinations.forEach(city=>{
+  const option=document.createElement("option");
+  option.value=city;
+  option.text=city;
+  toInput.appendChild(option);
+});
+
+// SOS Function
+function sendSOS(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const lat=pos.coords.latitude;
+      const lon=pos.coords.longitude;
+      const message=EMERGENCY! I need help. My location: https://www.google.com/maps?q=${lat},${lon};
+      document.getElementById("sosStatus").innerText="SOS Sent! Share this link: " + message;
+      alert(message);
+    });
+  } else {
+    alert("Geolocation not supported.");
+  }
+}
+</script>
+
+
+
+
+ <h2>🧳 Travel Notes</h2>
+  <input type="text" id="noteInput" placeholder="Add item or reminder">
+  <button onclick="addNote()">Add</button>
+
+  <div id="notesContainer"></div>
+
+  <script>
+    function addNote() {
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const note = document.createElement('div');
+      note.className = 'note';
+      note.innerHTML = `
+        <span>${text}</span><br>
+        <button onclick="this.parentElement.classList.toggle('marked')">Mark</button>
+        <button onclick="this.parentElement.remove()">Delete</button>
+      `;
+      document.getElementById('notesContainer').appendChild(note);
+      input.value = '';
+    }
+  </script>
+
+
+
+
+<h2>Leave Your Feedback</h2>
+  <div id="starRating">
+    <span class="star" data-value="1">★</span>
+    <span class="star" data-value="2">★</span>
+    <span class="star" data-value="3">★</span>
+    <span class="star" data-value="4">★</span>
+    <span class="star" data-value="5">★</span>
+  </div>
+
+  <textarea id="feedbackText" rows="4" cols="50" placeholder="Write your review here..."></textarea><br><br>
+  <button onclick="submitReview()">Submit</button>
+
+  <div id="reviews">
+    <h3>Reviews:</h3>
+  </div>
+
+  <script>
+    let selectedRating = 0;
+
+    document.querySelectorAll('.star').forEach(star => {
+      star.addEventListener('click', () => {
+        selectedRating = parseInt(star.getAttribute('data-value'));
+        document.querySelectorAll('.star').forEach(s => {
+          s.classList.remove('selected');
+        });
+        for (let i = 0; i < selectedRating; i++) {
+          document.querySelectorAll('.star')[i].classList.add('selected');
+        }
+      });
+    });
+
+    function submitReview() {
+      const text = document.getElementById('feedbackText').value;
+      if (selectedRating === 0 || text.trim() === "") {
+        alert("Please provide a rating and review.");
+        return;
+      }
+
+      const reviewContainer = document.createElement('div');
+      reviewContainer.className = 'review-box';
+      reviewContainer.innerHTML = <strong>Rating:</strong> ${'★'.repeat(selectedRating)}<br><strong>Review:</strong> ${text};
+      document.getElementById('reviews').appendChild(reviewContainer);
+
+      // Reset form
+      document.getElementById('feedbackText').value = '';
+      selectedRating = 0;
+      document.querySelectorAll('.star').forEach(s => s.classList.remove('selected'));
+    }
+  </script>
+</section>
+<footer>
+  <p>&copy; 2025 Smart Travel Assistant | Designed with ❤ for Travellers</p>
+</footer>
+</body>
+</html>
